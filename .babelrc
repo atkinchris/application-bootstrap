@@ -6,7 +6,8 @@
         "targets": {
           "browsers": [">0.25%", "IE > 9", "not op_mini all"]
         },
-        "useBuiltIns": "usage"
+        "useBuiltIns": "usage",
+        "corejs": 3
       }
     ],
     "@babel/preset-react"
