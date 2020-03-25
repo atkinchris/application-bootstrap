@@ -5,7 +5,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const merge = require('webpack-merge')
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
+const autoprefixer = require('autoprefixer')
 
 const paths = {
   SRC: path.resolve(__dirname, 'src'),
@@ -14,29 +15,51 @@ const paths = {
 
 const common = {
   entry: {
-    main: ['@babel/polyfill', paths.SRC],
+    main: [paths.SRC],
   },
   output: {
     path: paths.DEST,
-    publicPath: '',
+    publicPath: '/',
     filename: '[name].[hash:8].js',
     chunkFilename: '[name].[chunkhash:8].js',
   },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
-        exclude: /node_modules/,
-        use: 'babel-loader',
+        test: /\.tsx?$/,
+        use: ['babel-loader', 'ts-loader'],
       },
       {
-        test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        test: /\.js$/,
+        use: ['source-map-loader'],
+        exclude: [/node_modules/],
+        enforce: 'pre',
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: () => [autoprefixer()],
+            },
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sassOptions: {
+                includePaths: ['node_modules'],
+              },
+            },
+          },
+        ],
       },
     ],
   },
   resolve: {
-    extensions: ['.js', '.jsx'],
+    extensions: ['.ts', '.tsx', '.js'],
   },
   plugins: [
     new MiniCssExtractPlugin({ fileName: '[name].[contenthash:8].css' }),
@@ -68,7 +91,7 @@ const production = {
   ],
   optimization: {
     minimizer: [
-      new UglifyJsPlugin({
+      new TerserPlugin({
         cache: true,
         parallel: true,
         sourceMap: true,
